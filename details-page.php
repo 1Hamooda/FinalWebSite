@@ -5,12 +5,13 @@ $news = $conn->query("SELECT * FROM news WHERE id=$news_id AND status='published
 if (!$news) {
     die('<div class="alert alert-danger">الخبر غير موجود</div>');
 }
-// Increment view count
 $conn->query("UPDATE news SET views = views + 1 WHERE id=$news_id");
-// Fetch category
+
 $category = $conn->query("SELECT * FROM category WHERE id=" . intval($news['category_id']))->fetch_assoc();
-// Fetch all categories for navbar
+
 $categories = $conn->query("SELECT * FROM category");
+
+$ad = $conn->query("SELECT * FROM advertisements WHERE active=1 AND position='sidebar' AND category_id=" . intval($news['category_id']) . " ORDER BY id DESC LIMIT 1")->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -124,19 +125,25 @@ $categories = $conn->query("SELECT * FROM category");
             </script>
         </div>
         <div class="col-md-4">
-            <!-- Related news: show 3 other news from same category -->
             <section class="mb-4">
                 <h6 class="border-bottom py-3 mt-4">
                     <span class="border-bottom border-4 border-primary">المزيد عن <?= htmlspecialchars($category['name']) ?></span>
                 </h6>
                 <ul class="list-unstyled mt-2">
                 <?php
-                $related = $conn->query("SELECT id, title FROM news WHERE category_id=".intval($news['category_id'])." AND id!=$news_id AND status='published' ORDER BY dateposted DESC LIMIT 3");
+                $related = $conn->query("SELECT id, title FROM news WHERE category_id=".intval($news['category_id'])." AND id!=$news_id AND status='published' ORDER BY dateposted DESC LIMIT 5");
                 while($r = $related->fetch_assoc()): ?>
                     <li class="py-2">◆ <a href="details-page.php?id=<?= $r['id'] ?>" class="text-decoration-none"> <?= htmlspecialchars($r['title']) ?> </a></li>
                 <?php endwhile; ?>
                 </ul>
             </section>
+            <?php if ($ad): ?>
+            <div class="w-50 align-items-center d-flex justify-content-center mx-auto mb-4">
+                <a href="<?= htmlspecialchars($ad['link']) ?>" target="_blank">
+                    <img src="News WebPage/Photos/<?= htmlspecialchars($ad['image_path']) ?>" class="img-fluid" alt="Ad">
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </main>

@@ -6,6 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $link = $_POST['link'];
     $position = $_POST['position'];
     $active = isset($_POST['active']) ? 1 : 0;
+    $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : null;
     $image_path = '';
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $imgName = time() . '_' . basename($_FILES['image']['name']);
@@ -14,9 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $image_path = $imgName;
         }
     }
-    $stmt = $conn->prepare("INSERT INTO advertisements (image_path, link, position, active) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param('sssi', $image_path, $link, $position, $active);
-    $stmt->execute();
+    $stmt = $conn->prepare("INSERT INTO advertisements (image_path, link, position, active, category_id) VALUES (?, ?, ?, ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param('sssii', $image_path, $link, $position, $active, $category_id);
+        $stmt->execute();
+    } else {
+        die('Database error: ' . $conn->error);
+    }
     header('Location: ads.php');
     exit();
 }
@@ -37,17 +42,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" name="link" class="form-control">
         </div>
         <div class="mb-3">
-            <label>موضع الإعلان</label>
-            <select name="position" class="form-control">
-                <option value="header">رأس الصفحة</option>
-                <option value="sidebar">الجانب</option>
-                <option value="footer">تذييل</option>
-            </select>
-        </div>
-        <div class="mb-3">
             <label>صورة الإعلان</label>
             <input type="file" name="image" class="form-control">
         </div>
+        <div class="mb-3">
+            <label>الفئة</label>
+            <select name="category_id" class="form-control">
+                <option value="">اختر فئة</option>
+                <?php
+                $categories = $conn->query("SELECT id, name FROM category");
+                while ($row = $categories->fetch_assoc()) {
+                    echo '<option value="' . $row['id'] . '">' . htmlspecialchars($row['name']) . '</option>';
+                }
+                ?>
+            </select>
+        </div>
+        <input type="hidden" name="position" value="sidebar">
         <div class="mb-3 form-check">
             <input type="checkbox" name="active" class="form-check-input" id="activeCheck" checked>
             <label class="form-check-label" for="activeCheck">نشط</label>

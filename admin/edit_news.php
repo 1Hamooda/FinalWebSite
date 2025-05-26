@@ -23,6 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("UPDATE news SET title=?, body=?, image=?, category_id=?, author_id=?, status=? WHERE id=?");
     $stmt->bind_param('sssissi', $title, $body, $image, $category_id, $author_id, $status, $id);
     $stmt->execute();
+    // AUDIT LOG
+    $user_id = $_SESSION['user_id'];
+    $action_type = 'edit';
+    $details = 'Edited news: ' . $title;
+    $conn->query("INSERT INTO audit_log (user_id, news_id, action_type, details) VALUES ($user_id, $id, '$action_type', '" . $conn->real_escape_string($details) . "')");
     header('Location: news.php');
     exit();
 }

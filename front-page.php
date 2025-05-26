@@ -1,27 +1,27 @@
 <?php
 require_once 'includes/db.php';
-// Fetch all categories
+
 $categories = $conn->query("SELECT * FROM category");
 $category_map = [];
 while ($cat = $categories->fetch_assoc()) {
     $category_map[$cat['id']] = $cat;
 }
-// Helper: get category id by name (for static mapping)
+
 function get_category_id($name, $category_map) {
     foreach ($category_map as $id => $cat) {
         if (stripos($cat['name'], $name) !== false) return $id;
     }
     return null;
 }
-// Fetch latest news for each category (limit as needed)
+
 $news_by_cat = [];
 foreach ($category_map as $cat_id => $cat) {
     $news = $conn->query("SELECT * FROM news WHERE category_id=$cat_id AND status='published' ORDER BY dateposted DESC LIMIT 4");
     $news_by_cat[$cat_id] = $news->fetch_all(MYSQLI_ASSOC);
 }
-// Fetch latest news overall for hero area
+
 $latest_news = $conn->query("SELECT * FROM news WHERE status='published' ORDER BY dateposted DESC LIMIT 3")->fetch_all(MYSQLI_ASSOC);
-// Fetch active ads for the front page
+
 $ads = $conn->query("SELECT * FROM advertisements WHERE active=1 AND position='frontpage' ORDER BY id DESC");
 $ads_arr = $ads ? $ads->fetch_all(MYSQLI_ASSOC) : [];
 ?>
@@ -67,7 +67,7 @@ $ads_arr = $ads ? $ads->fetch_all(MYSQLI_ASSOC) : [];
     </nav>
 
 <main class="container mt-4">
-<!-- ADS SECTION (top of page, can be moved as needed) -->
+<!-- ADS SECTION -->
 <?php if (!empty($ads_arr)): ?>
     <div class="row mb-4">
         <?php foreach ($ads_arr as $ad): ?>
@@ -79,7 +79,7 @@ $ads_arr = $ads ? $ads->fetch_all(MYSQLI_ASSOC) : [];
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
-<!-- HERO/MAIN NEWS AREA -->
+
 <section class="row g-4">
     <?php foreach ($latest_news as $i => $news): ?>
         <div class="col-md-<?= $i == 0 ? '4' : '3' ?>">
@@ -100,7 +100,6 @@ $ads_arr = $ads ? $ads->fetch_all(MYSQLI_ASSOC) : [];
         </div>
     <?php endforeach; ?>
 </section>
-<!-- END HERO/MAIN NEWS AREA -->
 
 </section>
 <div class="row">
@@ -162,12 +161,11 @@ loadMostSections();
 
 
 <?php
-// Render each main section dynamically (Nintendo, Ubisoft, Steam, EA)
 $main_sections = ['Nintendo', 'Ubisoft', 'Steam', 'Electronic Arts'];
 foreach ($main_sections as $section_name):
     $cat_id = get_category_id($section_name, $category_map);
     if ($cat_id && !empty($news_by_cat[$cat_id])): 
-        $section_news = array_slice($news_by_cat[$cat_id], 0, 5); // Only 5 news per section
+        $section_news = array_slice($news_by_cat[$cat_id], 0, 4); 
 ?>
 <section class="row mt-5">
     <div class="row">
@@ -184,7 +182,7 @@ foreach ($main_sections as $section_name):
     </div>
     <div class="row g-2">
         <?php
-        // First news: main card (col-md-6)
+        // main card (col-md-6)
         if (isset($section_news[0])): ?>
             <div class="col-md-6">
                 <div class="card-body">
@@ -199,7 +197,7 @@ foreach ($main_sections as $section_name):
             </div>
         <?php endif; ?>
         <?php
-        // Next 4 news: 2 per col-md-3 (stacked)
+
         for ($col = 0; $col < 2; $col++): ?>
             <div class="col-md-3">
                 <?php for ($j = 0; $j < 2; $j++):

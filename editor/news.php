@@ -6,10 +6,20 @@ require_once '../includes/db.php';
 if (isset($_GET['approve'])) {
     $id = intval($_GET['approve']);
     $conn->query("UPDATE news SET status='published' WHERE id=$id");
+    // AUDIT LOG
+    $user_id = $_SESSION['user_id'];
+    $action_type = 'approve';
+    $details = 'Editor approved news ID: ' . $id;
+    $conn->query("INSERT INTO audit_log (user_id, news_id, action_type, details) VALUES ($user_id, $id, '$action_type', '" . $conn->real_escape_string($details) . "')");
 }
 if (isset($_GET['reject'])) {
     $id = intval($_GET['reject']);
     $conn->query("UPDATE news SET status='rejected' WHERE id=$id");
+    // AUDIT LOG
+    $user_id = $_SESSION['user_id'];
+    $action_type = 'reject';
+    $details = 'Editor rejected news ID: ' . $id;
+    $conn->query("INSERT INTO audit_log (user_id, news_id, action_type, details) VALUES ($user_id, $id, '$action_type', '" . $conn->real_escape_string($details) . "')");
 }
 $news = $conn->query("SELECT n.*, c.name as category, u.name as author FROM news n LEFT JOIN category c ON n.category_id = c.id LEFT JOIN users u ON n.author_id = u.id WHERE n.status='pending' ORDER BY n.dateposted DESC");
 ?>

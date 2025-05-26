@@ -5,7 +5,14 @@ require_once '../includes/db.php';
 // Delete news
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
+    // Get news title for audit log
+    $news_row = $conn->query("SELECT title FROM news WHERE id=$id")->fetch_assoc();
     $conn->query("DELETE FROM news WHERE id=$id");
+    // AUDIT LOG
+    $user_id = $_SESSION['user_id'];
+    $action_type = 'delete';
+    $details = 'Deleted news: ' . ($news_row ? $news_row['title'] : '');
+    $conn->query("INSERT INTO audit_log (user_id, news_id, action_type, details) VALUES ($user_id, $id, '$action_type', '" . $conn->real_escape_string($details) . "')");
 }
 $news = $conn->query("SELECT n.*, c.name as category, u.name as author FROM news n LEFT JOIN category c ON n.category_id = c.id LEFT JOIN users u ON n.author_id = u.id ORDER BY n.dateposted DESC");
 ?>

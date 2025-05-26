@@ -3,6 +3,8 @@ require_once '../includes/auth.php';
 require_role('admin');
 require_once '../includes/db.php';
 $audit = $conn->query("SELECT l.*, u.name as user_name, n.title as news_title FROM audit_log l LEFT JOIN users u ON l.user_id = u.id LEFT JOIN news n ON l.news_id = n.id ORDER BY l.timestamp DESC LIMIT 100");
+// Ensure the result set pointer is at the beginning
+$audit->data_seek(0);
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">

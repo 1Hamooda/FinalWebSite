@@ -8,6 +8,8 @@ if (!$category) {
 $news = $conn->query("SELECT * FROM news WHERE category_id=$cat_id AND status='published' ORDER BY dateposted DESC");
 // Fetch all categories for navbar
 $categories = $conn->query("SELECT * FROM category");
+
+$ad = $conn->query("SELECT * FROM advertisements WHERE active=1 AND position='sidebar' AND category_id=$cat_id ORDER BY id DESC LIMIT 1")->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -65,7 +67,7 @@ $categories = $conn->query("SELECT * FROM category");
 </div>
 
 <?php
-// Fetch up to 6 news for this category (to match front-page section)
+
 $news_arr = [];
 if ($news->num_rows > 0) {
     while($n = $news->fetch_assoc()) {
@@ -75,6 +77,13 @@ if ($news->num_rows > 0) {
 }
 ?>
 <section class="row g-2 mt-2">
+    <?php if ($ad): ?>
+    <div class="col-md-12 mb-4 d-flex justify-content-center">
+        <a href="<?= htmlspecialchars($ad['link']) ?>" target="_blank">
+            <img src="News WebPage/Photos/<?= htmlspecialchars($ad['image_path']) ?>" class="img-fluid" style="max-width:350px;max-height:200px;" alt="Ad">
+        </a>
+    </div>
+    <?php endif; ?>
     <?php if (count($news_arr) > 0): ?>
         <?php foreach ($news_arr as $i => $n): ?>
             <div class="col-md-<?= $i == 0 ? '6' : '3' ?> mb-4">

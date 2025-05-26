@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("INSERT INTO news (title, body, image, category_id, author_id, status) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param('sssiss', $title, $body, $image, $category_id, $author_id, $status);
     $stmt->execute();
+    // AUDIT LOG
+    $user_id = $_SESSION['user_id'];
+    $news_id = $conn->insert_id;
+    $action_type = 'add';
+    $details = 'Added news: ' . $title;
+    $conn->query("INSERT INTO audit_log (user_id, news_id, action_type, details) VALUES ($user_id, $news_id, '$action_type', '" . $conn->real_escape_string($details) . "')");
     header('Location: news.php');
     exit();
 }
